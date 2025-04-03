@@ -17,6 +17,10 @@ const app = express();
 app.use(cors()); // Allow cross-origin requests
 app.use(express.json()); // Parse incoming JSON data
 
+app.get("/", (req, res) => {
+  res.send("Welcome to Budget Management API!");
+});
+
 // Routes
 app.use("/api/auth/register", register); // Using the authRoute
 app.use("/api/auth/signin", signin); // Using the authRoute
