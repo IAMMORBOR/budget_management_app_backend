@@ -31,6 +31,10 @@ const userBudgetSchema = new mongoose.Schema(
       type: String,
       default: "NGN",
     },
+    isActiveBudget: {
+      type: Boolean,
+      default: false,
+    },
     startDate: {
       type: Date,
     },

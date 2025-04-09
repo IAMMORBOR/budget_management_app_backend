@@ -11,6 +11,9 @@ const getAllWallet = require("./controller/wallet/getAllWallet");
 const createUserBudget = require("./controller/wallet/createBudget");
 const transaction = require("./controller/transactions/createTransaction");
 const getTransactionById = require("./controller/transactions/getTransactionById");
+const getUsersAccountById = require("./controller/account/getUsersAccountById");
+const getAllBudget = require("./controller/wallet/getAllBudget");
+const getBudgetById = require("./controller/wallet/getAllBudgetById");
 
 const app = express();
 // Middleware
@@ -31,6 +34,9 @@ app.use("/get-wallets", getAllWallet);
 app.use("/create-budget", createUserBudget);
 app.use("/create-transaction", transaction);
 app.use("/get-transaction", getTransactionById);
+app.use("/get-account", getUsersAccountById);
+app.use("/get-all_budget", getAllBudget);
+app.use("/get_user_budget", getBudgetById);
 
 // Connect to MongoDB
 mongoose

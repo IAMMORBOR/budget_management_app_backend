@@ -24,12 +24,112 @@ router.get("/", async (req, res) => {
 });
 
 // Create budget route
+// router.post("/:userId", async (req, res) => {
+//   const { userId } = req.params;
+//   const { amount, limit, currency, tracking_type, budget_name } = req.body;
+//   const startDate = new Date();
+//   currentDate = new Date();
+//   let endDate = new Date(startDate);
+//   let isActiveBudget = false;
+
+//   // SET END DATE
+//   switch (tracking_type) {
+//     case "weekly":
+//       endDate.setDate(startDate.getDate() + 7);
+//       break;
+//     case "daily":
+//       endDate.setDate(startDate.getDate() + 1);
+//       break;
+//     case "1month":
+//       endDate.setMonth(startDate.getMonth() + 1);
+//       break;
+//     case "quarterly":
+//       endDate.setMonth(startDate.getMonth() + 3);
+//       break;
+//     case "half-month":
+//       endDate.setDate(startDate.getDate() + 15);
+//       break;
+//     default:
+//       return res.status(400).json({ message: "Invalid tracking type" });
+//   }
+
+//   if (!amount || !limit || !currency || !tracking_type || !budget_name) {
+//     return res.status(400).json({ message: "All fields are required" });
+//   }
+//   if (limit > amount) {
+//     return res
+//       .status(400)
+//       .json({ message: "Limit can not be greater than budget" });
+//   }
+
+//   // check if user has a wallet.
+//   try {
+//     const wallet = await Wallet.findOne({ userId });
+//     const budget = await Budget.findOne({ userId });
+//     if (!wallet) {
+//       return res.status(404).json({ message: "User wallet not found" });
+//     }
+
+//     const activeBudget = await Budget.findOne({
+//       userId,
+//       endDate: { $gt: startDate },
+//     });
+
+//     if (activeBudget) {
+//       isActiveBudget = true;
+//       return res.status(400).json({
+//         message:
+//           "An active budget already exists. Please wait until the current budget period ends before creating a new one.",
+//       });
+//     }
+//     // Update wallet balance
+//     wallet.amount = amount;
+//     wallet.currency = currency;
+//     await wallet.save();
+
+//     // Create a budget for the user
+//     const userBudget = new Budget({
+//       userId,
+//       fullName: wallet.userName || "Unknown", // Ensure userName exists
+//       amount,
+//       currency,
+//       limit,
+//       tracking_type,
+//       budget_name,
+//       startDate,
+//       endDate,
+//       isActiveBudget,
+//     });
+
+//     await userBudget.save();
+
+//     // json response
+//     res.status(201).json({
+//       message: "Budget successfully created!",
+//       userBudget: {
+//         fullName: userBudget.fullName,
+//         amount: userBudget.amount,
+//         id: userBudget._id,
+//         limit: userBudget.limit,
+//         currency: userBudget.currency,
+//         tracking_type: userBudget.tracking_type,
+//         budget_name: userBudget.budget_name,
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error creating user budget:", error);
+//     res.status(500).json({ message: "Internal server error" });
+//   }
+// });
+
 router.post("/:userId", async (req, res) => {
   const { userId } = req.params;
   const { amount, limit, currency, tracking_type, budget_name } = req.body;
+
   const startDate = new Date();
-  currentDate = new Date();
+  const currentDate = new Date();
   let endDate = new Date(startDate);
+  let isActiveBudget = false;
 
   // SET END DATE
   switch (tracking_type) {
@@ -55,40 +155,47 @@ router.post("/:userId", async (req, res) => {
   if (!amount || !limit || !currency || !tracking_type || !budget_name) {
     return res.status(400).json({ message: "All fields are required" });
   }
+
   if (limit > amount) {
     return res
       .status(400)
-      .json({ message: "Limit can not be greater than budget" });
+      .json({ message: "Limit cannot be greater than budget" });
   }
 
-  // check if user has a wallet.
   try {
     const wallet = await Wallet.findOne({ userId });
-    const budget = await Budget.findOne({ userId });
     if (!wallet) {
       return res.status(404).json({ message: "User wallet not found" });
     }
 
-    const activeBudget = await Budget.findOne({
-      userId,
-      endDate: { $gt: startDate },
+    const existingBudget = await Budget.findOne({ userId }).sort({
+      endDate: -1,
     });
 
-    if (activeBudget) {
-      return res.status(400).json({
-        message:
-          "An active budget already exists. Please wait until the current budget period ends before creating a new one.",
-      });
+    if (existingBudget) {
+      if (existingBudget.endDate > currentDate) {
+        // Active budget exists
+        return res.status(400).json({
+          message:
+            "An active budget already exists. Please wait until the current budget period ends before creating a new one.",
+        });
+      } else if (existingBudget.isActiveBudget) {
+        // Mark expired budget as inactive
+        existingBudget.isActiveBudget = false;
+        await existingBudget.save();
+      }
     }
-    // Update wallet balance
+
+    // No active budget, allow creation
+    isActiveBudget = true;
+
     wallet.amount = amount;
     wallet.currency = currency;
     await wallet.save();
 
-    // Create a budget for the user
     const userBudget = new Budget({
       userId,
-      fullName: wallet.userName || "Unknown", // Ensure userName exists
+      fullName: wallet.userName || "Unknown",
       amount,
       currency,
       limit,
@@ -96,11 +203,11 @@ router.post("/:userId", async (req, res) => {
       budget_name,
       startDate,
       endDate,
+      isActiveBudget,
     });
 
     await userBudget.save();
 
-    // json response
     res.status(201).json({
       message: "Budget successfully created!",
       userBudget: {
