@@ -14,27 +14,29 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-// get all Budget
-router.get("/", async (req, res) => {
-  try {
-    const budget = await Budget.find();
-    res.status(200).json(budget);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
 
 // create route
 router.post("/:userId", async (req, res) => {
   const { userId } = req.params;
-  const { amount, type, description, category, transaction_name } = req.body;
+  // const { budget_Id } = req.params;
+  const { amount, type, description, category, transaction_name, budget_Id } =
+    req.body;
 
-  if ((!amount, !type, !description, !category, !transaction_name)) {
+  if (
+    (!amount, !type, !description, !category, !transaction_name, !budget_Id)
+  ) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
+  if (!budget_Id) {
+    return res
+      .status(400)
+      .json({ message: "enter a budget to carry out transaction on" });
+  }
+
   try {
-    const budget = await Budget.findOne({ userId });
+    const budget = await Budget.findOne({ _id: budget_Id, userId });
+
     const wallet = await Wallet.findOne({ userId });
     let updatedBudget = wallet.amount;
 
@@ -55,6 +57,11 @@ router.post("/:userId", async (req, res) => {
       const userTransactionUpdate = wallet.amount + amount;
       updatedBudget = userTransactionUpdate;
     }
+    if (budget.isActiveBudget === false) {
+      return res.status(400).json({
+        message: "You can't create a transaction under an inactive budget",
+      });
+    }
 
     wallet.amount = updatedBudget;
     await wallet.save();
@@ -69,9 +76,9 @@ router.post("/:userId", async (req, res) => {
       category,
       description,
       transaction_name,
+      budget_Id,
     });
     await userTransaction.save();
-
     // json response
     res.status(201).json({
       message: "transaction successfully added!",

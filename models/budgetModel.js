@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+// const transactionSchema = require("./transactionModel"); // Import the Transaction schema
+// const Transaction = require("./transactionModel"); // Import the Transaction model
 
 // Define the user Budget schema
 const userBudgetSchema = new mongoose.Schema(
@@ -35,6 +37,15 @@ const userBudgetSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // transactions: [{ Transaction }],
+    // transactions: [
+    //   {
+    //     transactionId: {
+    //       type: mongoose.Schema.Types.ObjectId,
+    //       ref: "Transaction",
+    //     },
+    //   },
+    // ],
     startDate: {
       type: Date,
     },

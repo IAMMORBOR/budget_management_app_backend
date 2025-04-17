@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const transactionSchema = new mongoose.Schema(
   {
+    transaction_id: mongoose.Schema.Types.ObjectId,
     userId: {
       type: String,
       required: true,
@@ -30,9 +32,13 @@ const transactionSchema = new mongoose.Schema(
       type: String,
       default: "NGN",
     },
-    // transaction_id: {
-    //   type: Number,
-    // },
+    budget_Id: {
+      type: String,
+      required: true,
+    },
+    transaction_id: {
+      type: Number,
+    },
   },
   { timestamps: true }
 );
