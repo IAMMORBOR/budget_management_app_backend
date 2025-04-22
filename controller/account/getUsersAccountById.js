@@ -61,6 +61,7 @@ router.get("/:userId", async (req, res) => {
       budget_amount: budget.amount,
       budget_limit: budget.limit,
       total_expenses: totalExpenses,
+      current_budget: budgetId,
     });
   } catch (error) {
     res

@@ -18,6 +18,10 @@ const accountSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    current_budget: {
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true }
 );
