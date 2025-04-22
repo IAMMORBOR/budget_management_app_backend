@@ -41,8 +41,16 @@ router.get("/:userId", async (req, res) => {
 
   try {
     const budget = await Budget.findOne({ userId, isActiveBudget: true });
+    console.log("account1", budget);
+
+    const budgetId = budget._id;
+    console.log("account123", budgetId);
     const wallet = await Wallet.findOne({ userId });
-    const transaction = await Transaction.find({ userId, type: "expenses" });
+    const transaction = await Transaction.find({
+      budget_Id: budgetId,
+      type: "expenses",
+    });
+    console.log("account", transaction);
     const totalExpenses = transaction.reduce((acc, curr) => {
       return acc + curr.amount;
     }, 0);
