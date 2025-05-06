@@ -39,14 +39,14 @@ const transactionSchema = new mongoose.Schema(
     transaction_id: {
       type: Number,
     },
-    totalExpense: {
-      type: Number,
-      required: true,
-    },
-    totalCredit: {
-      type: Number,
-      required: true,
-    },
+    // totalExpense: {
+    //   type: Number,
+    //   required: true,
+    // },
+    // totalCredit: {
+    //   type: Number,
+    //   required: true,
+    // },
   },
   { timestamps: true }
 );

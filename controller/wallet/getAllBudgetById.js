@@ -28,7 +28,7 @@ router.get("/:userId", async (req, res) => {
 
     // Query the database for transactions associated with the provided userId
     const budget = await Budget.find({ userId })
-      .sort({ date: -1 }) // Optional: sorts transactions by date in descending order
+      .sort({ createdAt: -1 }) // Optional: sorts transactions by date in descending order
       .skip(skip)
       .limit(limit);
 
