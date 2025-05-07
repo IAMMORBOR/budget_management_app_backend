@@ -39,7 +39,12 @@ router.get("/:id", async (req, res) => {
     }
 
     // Fetch paginated transactions
-    const transactions = await Transaction.find(query)
+    const transactions = await Transaction.find(query);
+    // .sort({ createdAt: -1 }) // Sort by creation date descending
+    // .skip(skip)
+    // .limit(limit);
+
+    const paginatedTransaction = await Transaction.find(query)
       .sort({ createdAt: -1 }) // Sort by creation date descending
       .skip(skip)
       .limit(limit);
@@ -68,10 +73,10 @@ router.get("/:id", async (req, res) => {
       totalTransactions,
       totalPages,
       currentPage: page,
-      pageSize: transactions.length,
+      pageSize: paginatedTransaction.length,
       totalCredit,
       totalExpense,
-      transactions,
+      transactions: paginatedTransaction,
     });
   } catch (error) {
     console.error("Error fetching transactions:", error);
