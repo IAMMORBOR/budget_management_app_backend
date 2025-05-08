@@ -2,6 +2,7 @@ const express = require("express");
 const Budget = require("../../models/budgetModel");
 const Wallet = require("../../models/userWalletModel");
 const Transaction = require("../../models/transactionModel");
+const Account = require("../../models/accountModel");
 const router = express.Router();
 require("dotenv").config();
 
@@ -41,28 +42,54 @@ router.get("/:userId", async (req, res) => {
 
   try {
     const budget = await Budget.findOne({ userId, isActiveBudget: true });
-    console.log("account1", budget);
+
+    if (!budget) {
+      return res.status(404).json({ message: "Active budget not found" });
+    }
 
     const budgetId = budget._id;
-    console.log("account123", budgetId);
+
     const wallet = await Wallet.findOne({ userId });
-    const transaction = await Transaction.find({
+    if (!wallet) {
+      return res.status(404).json({ message: "Wallet not found" });
+    }
+
+    const transactions = await Transaction.find({
       budget_Id: budgetId,
       type: "expenses",
     });
-    console.log("account", transaction);
-    const totalExpenses = transaction.reduce((acc, curr) => {
-      return acc + curr.amount;
-    }, 0);
 
-    res.status(200).json({
-      userId: userId,
-      current_balance: wallet.amount,
-      budget_amount: budget.amount,
-      budget_limit: budget.limit,
-      total_expenses: totalExpenses,
-      current_budget: budgetId,
-    });
+    const totalExpenses = transactions.reduce(
+      (acc, curr) => acc + curr.amount,
+      0
+    );
+
+    // Check if an account already exists
+    let account = await Account.findOne({ userId });
+
+    if (!account) {
+      // Create a new account document
+      account = new Account({
+        user_name: wallet.userName,
+        userId: userId,
+        budget_amount: budget.amount,
+        current_balance: wallet.amount,
+        total_expenses: totalExpenses,
+        current_budget: budgetId.toString(),
+      });
+
+      await account.save();
+    } else {
+      // Update existing account document
+      account.budget_amount = budget.amount;
+      account.current_balance = wallet.amount;
+      account.total_expenses = totalExpenses;
+      account.current_budget = budgetId.toString();
+
+      await account.save();
+    }
+
+    res.status(200).json(account);
   } catch (error) {
     res
       .status(500)

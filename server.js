@@ -17,6 +17,7 @@ const getBudgetById = require("./controller/wallet/getAllBudgetById");
 const logout = require("./controller/auth/logout");
 const getAllTransactions = require("./controller/transactions/getAllTransactions");
 const getTransactionByBudgetId = require("./controller/transactions/getTransactionByBudgetId");
+const deleteTransaction = require("./controller/transactions/deleteTransaction");
 
 const app = express();
 // Middleware
@@ -43,6 +44,7 @@ app.use("/get_user_budget", getBudgetById);
 app.use("/auth/logout", logout);
 app.use("/transactions", getAllTransactions);
 app.use("/get-transaction-by-budgetId", getTransactionByBudgetId);
+app.use("/delete-transaction", deleteTransaction);
 
 // Connect to MongoDB
 mongoose
