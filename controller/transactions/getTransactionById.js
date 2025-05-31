@@ -7,11 +7,11 @@ require("dotenv").config();
 // Route to retrieve paginated transactions for a specific user
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
-  let { search_terms, page = 1, limit = 10 } = req.query;
+  let { search_terms, page, limit } = req.query;
 
   // Convert page and limit to integers
-  page = parseInt(page, 10);
-  limit = parseInt(limit, 10);
+  page = page ? parseInt(page, 10) : undefined;
+  limit = limit ? parseInt(limit, 10) : undefined;
 
   if (!id) {
     return res.status(400).json({ message: "User ID is required" });
@@ -24,8 +24,6 @@ router.get("/:id", async (req, res) => {
   }
 
   try {
-    const skip = (page - 1) * limit;
-
     // Construct the base query
     const query = { userId: id };
 
@@ -39,15 +37,18 @@ router.get("/:id", async (req, res) => {
     }
 
     // Fetch paginated transactions
-    const transactions = await Transaction.find(query);
-    // .sort({ createdAt: -1 }) // Sort by creation date descending
-    // .skip(skip)
-    // .limit(limit);
+    const transactions = await Transaction.find(query).sort({ createdAt: -1 }); // Sort by creation date descending
 
-    const paginatedTransaction = await Transaction.find(query)
-      .sort({ createdAt: -1 }) // Sort by creation date descending
-      .skip(skip)
-      .limit(limit);
+    let paginatedTransaction = transactions;
+    let totalPages = 1;
+    let currentPage = 1;
+
+    if (page && limit && page > 0 && limit > 0) {
+      const skip = (page - 1) * limit;
+      paginatedTransaction = transactions.slice(skip, skip + limit);
+      totalPages = Math.ceil(transactions.length / limit);
+      currentPage = page;
+    }
 
     if (transactions.length === 0) {
       return res
@@ -67,12 +68,11 @@ router.get("/:id", async (req, res) => {
       .filter((trans) => trans.type === "expenses")
       .reduce((acc, curr) => acc + curr.amount, 0);
 
-    const totalPages = Math.ceil(totalTransactions / limit);
-
     res.status(200).json({
       totalTransactions,
       totalPages,
-      currentPage: page,
+      currentPage,
+
       pageSize: paginatedTransaction.length,
       totalCredit,
       totalExpense,
