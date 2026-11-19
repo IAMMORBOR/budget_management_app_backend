@@ -19,6 +19,7 @@ router.get("/", async (req, res) => {
 router.post("/", async (req, res) => {
   const password = req.body.password;
   const email = req.body.email.trim().toLowerCase();
+  console.log("Signin request received:", req?.body);
 
   if (!email || !password) {
     return res.status(400).json({ message: "Email and password are required" });

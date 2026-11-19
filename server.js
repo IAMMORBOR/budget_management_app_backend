@@ -56,8 +56,28 @@ mongoose
   .catch((err) => console.log(err));
 
 // Start the server
+// const PORT = process.env.PORT || 5000;
+// console.log(PORT, process.env.PORT);
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
+
 const PORT = process.env.PORT || 5000;
-console.log(PORT);
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+const startServer = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+
+    console.log("MongoDB connected successfully");
+
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+
+  } catch (error) {
+    console.error("MongoDB connection failed:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
